@@ -102,9 +102,9 @@ def main(args):
     Resize((256, 256)),
     ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
     GaussianBlur(kernel_size=3, sigma=(0.1, 2.0)),
-    RandomInvert(p=0.2),
-    RandomPosterize(bits=4, p=0.2),
-    RandomSolarize(threshold=0.5, p=0.2),
+    RandomInvert(p=0.1),
+    RandomPosterize(bits=4, p=0.1),
+    RandomSolarize(threshold=0.5, p=0.1),
     ToDtype(torch.float32, scale=True),
     Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
     ])

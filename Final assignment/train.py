@@ -100,11 +100,11 @@ def main(args):
     img_transform_train_aug = Compose([
     ToImage(),
     Resize((256, 256)),
-    ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
+    ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
     GaussianBlur(kernel_size=3, sigma=(0.1, 2.0)),
-    RandomInvert(p=0.3),
-    RandomPosterize(bits=4, p=0.3),
-    RandomSolarize(threshold=0.5, p=0.3),
+    RandomInvert(p=0.15),
+    RandomPosterize(bits=4, p=0.15),
+    RandomSolarize(threshold=0.5, p=0.15),
     ToDtype(torch.float32, scale=True),
     Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
     ])

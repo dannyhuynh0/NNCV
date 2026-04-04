@@ -28,7 +28,7 @@ class Model(nn.Module):
 
         # Encoding path
         self.in_channels = in_channels
-        self.inc = (DoubleConv(in_channels, 64))
+        self.inc = (ResidualDoubleConv(in_channels, 64))
         self.down1 = (Down(64, 128))
         self.down2 = (Down(128, 256))
         self.down3 = (Down(256, 512))
@@ -67,10 +67,13 @@ class Model(nn.Module):
         logits = self.outc(x)
 
         return logits
-        
+    
 
-class DoubleConv(nn.Module):
-    """(convolution => [BN] => ReLU) * 2"""
+class ResidualDoubleConv(nn.Module):
+    """
+    (convolution => [BN] => ReLU => convolution => [BN]
+    => residual path => ReLU)
+    """
 
     def __init__(self, in_channels, out_channels, mid_channels=None):
         super().__init__()
@@ -82,21 +85,30 @@ class DoubleConv(nn.Module):
             nn.ReLU(inplace=True),
             nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True)
         )
+        self.residual_path = nn.Conv2d(
+            in_channels,
+            out_channels,
+            kernel_size=1,
+            padding=0,
+            bias=False)
+        self.ReLU_activation = nn.ReLU(inplace=True)
 
     def forward(self, x):
-        return self.double_conv(x)
+        o1 = self.double_conv(x)
+        o2 = o1 + self.residual_path(x)
+        output = self.ReLU_activation(o2)
+        return output
 
 
 class Down(nn.Module):
-    """Downscaling with maxpool then double conv"""
+    """Downscaling with maxpool then residual double conv"""
 
     def __init__(self, in_channels, out_channels):
         super().__init__()
         self.maxpool_conv = nn.Sequential(
             nn.MaxPool2d(2),
-            DoubleConv(in_channels, out_channels)
+            ResidualDoubleConv(in_channels, out_channels)
         )
 
     def forward(self, x):
@@ -104,12 +116,12 @@ class Down(nn.Module):
 
 
 class Up(nn.Module):
-    """Upscaling then double conv"""
+    """Upscaling then residual double conv"""
 
     def __init__(self, in_channels, out_channels, bilinear=True):
         super().__init__()
         self.up = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
-        self.conv = DoubleConv(in_channels, out_channels, in_channels // 2)
+        self.conv = ResidualDoubleConv(in_channels, out_channels, in_channels // 2)
         
     def forward(self, x1, x2):
         x1 = self.up(x1)

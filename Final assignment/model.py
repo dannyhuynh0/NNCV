@@ -83,7 +83,7 @@ class ResidualDoubleConv(nn.Module):
             nn.Conv2d(in_channels, mid_channels, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(mid_channels),
             nn.ReLU(inplace=True),
-            nn.Dropout(p=0.1),
+            nn.Dropout(p=0.2),
             nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(out_channels)
         )
@@ -94,7 +94,7 @@ class ResidualDoubleConv(nn.Module):
             padding=0,
             bias=False)
         self.ReLU_activation = nn.ReLU(inplace=True)
-        self.dropout_layer = nn.Dropout(p=0.1)
+        self.dropout_layer = nn.Dropout(p=0.2)
 
     def forward(self, x):
         o1 = self.double_conv(x)

@@ -94,6 +94,7 @@ class ResidualSqueezeExcitationDoubleConv(nn.Module):
             nn.Linear(out_channels, out_channels),
             nn.Sigmoid()
         )
+        self.residual_connection = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False)
 
     def forward(self, x):
         o1 = self.double_conv(x)
@@ -103,7 +104,7 @@ class ResidualSqueezeExcitationDoubleConv(nn.Module):
         o4 = self.excitation(o3)
         o5 = o4.view(N, C, 1, 1)
         o6 = o1*o5
-        output = o6 + x
+        output = o6 + self.residual_connection(x)
         return output
 
 

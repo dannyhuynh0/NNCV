@@ -28,7 +28,7 @@ class Model(nn.Module):
 
         # Encoding path
         self.in_channels = in_channels
-        self.inc = (SqueezeExcitationDoubleConv(in_channels, 64))
+        self.inc = (ResidualSqueezeExcitationDoubleConv(in_channels, 64))
         self.down1 = (Down(64, 128))
         self.down2 = (Down(128, 256))
         self.down3 = (Down(256, 512))
@@ -69,10 +69,10 @@ class Model(nn.Module):
         return logits
         
 
-class SqueezeExcitationDoubleConv(nn.Module):
+class ResidualSqueezeExcitationDoubleConv(nn.Module):
     """
     (convolution => [BN] => ReLU) * 2
-    (squeeze => excitation)
+    (squeeze => excitation) with residual connection
     """
 
     def __init__(self, in_channels, out_channels, mid_channels=None):
@@ -103,7 +103,7 @@ class SqueezeExcitationDoubleConv(nn.Module):
         o4 = self.excitation(o3)
         o5 = o4.view(N, C, 1, 1)
         o6 = o1*o5
-        output = o6
+        output = o6 + x
         return output
 
 
@@ -114,7 +114,7 @@ class Down(nn.Module):
         super().__init__()
         self.maxpool_conv = nn.Sequential(
             nn.MaxPool2d(2),
-            SqueezeExcitationDoubleConv(in_channels, out_channels)
+            ResidualSqueezeExcitationDoubleConv(in_channels, out_channels)
         )
 
     def forward(self, x):
@@ -127,7 +127,7 @@ class Up(nn.Module):
     def __init__(self, in_channels, out_channels, bilinear=True):
         super().__init__()
         self.up = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
-        self.conv = SqueezeExcitationDoubleConv(in_channels, out_channels, in_channels // 2)
+        self.conv = ResidualSqueezeExcitationDoubleConv(in_channels, out_channels, in_channels // 2)
         
     def forward(self, x1, x2):
         x1 = self.up(x1)

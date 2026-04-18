@@ -28,7 +28,7 @@ class Model(nn.Module):
 
         # Encoding path
         self.in_channels = in_channels
-        self.inc = (ResidualSqueezeExcitationDoubleConv(in_channels, 64))
+        self.inc = (ResidualDoubleConv(in_channels, 64))
         self.down1 = (Down(64, 128))
         self.down2 = (Down(128, 256))
         self.down3 = (Down(256, 512))
@@ -67,12 +67,12 @@ class Model(nn.Module):
         logits = self.outc(x)
 
         return logits
-        
+    
 
-class ResidualSqueezeExcitationDoubleConv(nn.Module):
+class ResidualDoubleConv(nn.Module):
     """
-    (convolution => [BN] => ReLU) * 2
-    (squeeze => excitation) with residual connection
+    (convolution => [BN] => ReLU => convolution => [BN]
+    => residual path => ReLU)
     """
 
     def __init__(self, in_channels, out_channels, mid_channels=None):
@@ -85,37 +85,30 @@ class ResidualSqueezeExcitationDoubleConv(nn.Module):
             nn.ReLU(inplace=True),
             nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True)
         )
-        self.squeeze = nn.AdaptiveAvgPool2d((1, 1))
-        self.excitation = nn.Sequential(
-            nn.Linear(out_channels, out_channels),
-            nn.ReLU(inplace=True),
-            nn.Linear(out_channels, out_channels),
-            nn.Sigmoid()
-        )
-        self.residual_connection = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False)
+        self.residual_path = nn.Conv2d(
+            in_channels,
+            out_channels,
+            kernel_size=1,
+            padding=0,
+            bias=False)
+        self.ReLU_activation = nn.ReLU(inplace=True)
 
     def forward(self, x):
         o1 = self.double_conv(x)
-        N, C, H, W = o1.shape
-        o2 = self.squeeze(o1)
-        o3 = o2.view(N, C)
-        o4 = self.excitation(o3)
-        o5 = o4.view(N, C, 1, 1)
-        o6 = o1*o5
-        output = o6 + self.residual_connection(x)
+        o2 = o1 + self.residual_path(x)
+        output = self.ReLU_activation(o2)
         return output
 
 
 class Down(nn.Module):
-    """Downscaling with maxpool then double conv"""
+    """Downscaling with maxpool then residual double conv"""
 
     def __init__(self, in_channels, out_channels):
         super().__init__()
         self.maxpool_conv = nn.Sequential(
             nn.MaxPool2d(2),
-            ResidualSqueezeExcitationDoubleConv(in_channels, out_channels)
+            ResidualDoubleConv(in_channels, out_channels)
         )
 
     def forward(self, x):
@@ -123,12 +116,12 @@ class Down(nn.Module):
 
 
 class Up(nn.Module):
-    """Upscaling then double conv"""
+    """Upscaling then residual double conv"""
 
     def __init__(self, in_channels, out_channels, bilinear=True):
         super().__init__()
         self.up = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
-        self.conv = ResidualSqueezeExcitationDoubleConv(in_channels, out_channels, in_channels // 2)
+        self.conv = ResidualDoubleConv(in_channels, out_channels, in_channels // 2)
         
     def forward(self, x1, x2):
         x1 = self.up(x1)

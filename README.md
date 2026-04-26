@@ -4,7 +4,7 @@ Welcome to the repository for **5LSM0: Neural Networks for Computer Vision**, a 
 
 ### Using different models
 
-The four different models placed in their own folders within the "Final assignment" folder. To run a specific model, please copy its content into the model.py, predict.py, and train.py files within the "Final assignment" folder.
+The four different models are placed in their own folders within the "Final assignment" folder. To run a specific model, please copy its content into the model.py, predict.py, and train.py files within the "Final assignment" folder.
 Example: If you want to run the Residual U-Net model, copy the content of model_Residual_U_Net.py, predict_Residual_U_Net.py, and train_Residual_U_Net.py into model.py, predict.py, and train.py, respectively.
 
 

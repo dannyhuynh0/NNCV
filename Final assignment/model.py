@@ -85,7 +85,6 @@ class ResidualSqueezeExcitationDoubleConv(nn.Module):
             nn.ReLU(inplace=True),
             nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True)
         )
         self.squeeze = nn.AdaptiveAvgPool2d((1, 1))
         self.excitation = nn.Sequential(
@@ -94,17 +93,31 @@ class ResidualSqueezeExcitationDoubleConv(nn.Module):
             nn.Linear(out_channels, out_channels),
             nn.Sigmoid()
         )
-        self.residual_connection = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False)
+        self.ReLU_activation = nn.ReLU(inplace=True)
+        self.residual_connection_1 = nn.Conv2d(
+            in_channels,
+            out_channels,
+            kernel_size=1,
+            padding=0,
+            bias=False)
+        self.residual_connection_2 = nn.Conv2d(
+            out_channels, 
+            out_channels, 
+            kernel_size=1, 
+            padding=0,
+            bias=False)
 
     def forward(self, x):
         o1 = self.double_conv(x)
-        N, C, H, W = o1.shape
-        o2 = self.squeeze(o1)
-        o3 = o2.view(N, C)
-        o4 = self.excitation(o3)
-        o5 = o4.view(N, C, 1, 1)
-        o6 = o1*o5
-        output = o6 + self.residual_connection(x)
+        o2 = o1 + self.residual_connection_1(x)
+        o3 = self.ReLU_activation(o2)
+        N, C, H, W = o3.shape
+        o4 = self.squeeze(o3)
+        o5 = o4.view(N, C)
+        o6 = self.excitation(o5)
+        o7 = o6.view(N, C, 1, 1)
+        o8 = o3*o7
+        output = o8 + self.residual_connection_2(o3)
         return output
 
 

@@ -28,12 +28,7 @@ from torchvision.transforms.v2 import (
     Resize,
     ToImage,
     ToDtype,
-    InterpolationMode,
-    ColorJitter,
-    GaussianBlur,
-    RandomInvert,
-    RandomPosterize,
-    RandomSolarize
+    InterpolationMode
 )
 
 from model import Model
@@ -97,19 +92,7 @@ def main(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Define the transforms to apply to the data
-    img_transform_train_aug = Compose([
-    ToImage(),
-    Resize((256, 256)),
-    ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.05),
-    GaussianBlur(kernel_size=3, sigma=(0.1, 1.1)),
-    RandomInvert(p=0.03),
-    RandomPosterize(bits=4, p=0.03),
-    RandomSolarize(threshold=0.5, p=0.03),
-    ToDtype(torch.float32, scale=True),
-    Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-    ])
-    
-    img_transform_valid = Compose([
+    img_transform = Compose([
     ToImage(),
     Resize((256, 256)),
     ToDtype(torch.float32, scale=True),
@@ -129,7 +112,7 @@ def main(args):
     split="train",
     mode="fine",
     target_type="semantic",
-    transform=img_transform_train_aug,
+    transform=img_transform,
     target_transform=target_transform,
     )
 
@@ -138,7 +121,7 @@ def main(args):
         split="val",
         mode="fine",
         target_type="semantic",
-        transform=img_transform_valid,
+        transform=img_transform,
         target_transform=target_transform,
     )
 

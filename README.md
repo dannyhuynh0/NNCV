@@ -2,44 +2,43 @@
 
 Welcome to the repository for **5LSM0: Neural Networks for Computer Vision**, a course offered by the Department of Electrical Engineering at Eindhoven University of Technology. This course is hosted by the [Architectures for Relaible Image Analysis Lab](https://github.com/TUE-ARIA).
 
-## Overview
+### Using different models
 
-This repository contains all the assignments and supplementary materials for the course. The weekly assignments are designed as **Jupyter Notebooks**, providing practical, hands-on experience with the concepts discussed during lectures. These notebooks will help you gain familiarity with implementing neural networks using **PyTorch** in **Python**. For the final assignment, you will apply the knowledge gained throughout the course by coding in native Python and working with a compute cluster, providing valuable experience in real-world computational environments.
+The four different models in their folders within the "Final assignment" folder. To run a specific model, please copy its content into the model.py, predict.py, and train.py files within the "Final assignment" folder.
+Example: If you want to run the Residual U-Net model, copy the content of model_Residual_U_Net.py, predict_Residual_U_Net.py, and train_Residual_U_Net.py into model.py, predict.py, and train.py, respectively.
 
-### Weekly Assignments
 
-The weekly assignments are structured to guide you through foundational and advanced topics in neural networks for computer vision. These assignments are:
-- **Optional**: They are not mandatory but serve as valuable practice to build your coding skills.
-- **Hands-On**: Focused on applying theoretical knowledge from the lectures into real-world implementations.
+### Running models
 
-### Final Assignment
+After git cloning the repository and setting up the MobaXterm environment, perform a git pull on MobaXterm to obtain the selected model. After that, go into the "Final assignment" folder and perform the following commands:
 
-The **final assignment** is the cornerstone of this course and accounts for **50% of your final grade**. In this project, you will:
-1. Work on a real-world problem using the **CityScapes dataset**.
-2. Train neural networks and validate their performance against established baselines.
-3. Document your results and insights in a detailed report.
+```bash
+chmod +x jobscript_slurm.sh
+sbatch jobscript_slurm.sh
+```
 
-This final assignment requires a deeper dive into the subject, pushing you to apply the knowledge and skills gained throughout the course.
+Download the best checkpoint, place it in the "Final assignment" folder, and rename it to model.pt.
 
-The final assignment will start in week 3 (February 24th), once all core lectures have been completed, ensuring you have the necessary foundation to work on the project.
 
-## Authors and Contact
+### Submission
 
-This course material is developed and maintained by the following contributors:  
+Build the docker image by using:
 
-- **Cris H.B. Claessens**  
-  Email: [c.h.b.claessens@tue.nl](mailto:c.h.b.claessens@tue.nl)  
+```bash
+docker build -t nncv-submission:latest -f "Final assignment/Dockerfile" "Final assignment"
+```
 
-- **Tim J.M. Jaspers**  
-  Email: [t.j.m.jaspers@tue.nl](mailto:t.j.m.jaspers@tue.nl)
+Test it locally by running (on Windows Powershell):
+```bash
+docker run --rm `
+  -v "${PWD}\local_data:/data" `
+  -v "${PWD}\local_output:/output" `
+  nncv-submission:latest
+```
 
-- **Francisco De Espírito Santo e Caetano**  
-  Email: [f.t.de.espirito.santo.e.caetano@tue.nl](mailto:f.t.de.espirito.santo.e.caetano@tue.nl)
+Export image to .tar for submission:
+```bash
+docker save -o nncv_submission.tar nncv-submission:latest
+```
 
-- **Lemar Abdi**  
-  Email: [l.abdi@tue.nl](mailto:l.abdi@tue.nl)
-
-- **dr. Christiaan G.A. Viviers**  
-  Email: [c.g.a.vivers@tue.nl](mailto:c.g.a.vivers@tue.nl)
-
-If you have questions or need assistance, you can always reach out to us via email. However, we strongly encourage you to post your questions in the **Discussions** section of this GitHub repository. This way, other students can benefit from the conversations and contribute by helping each other out.
+After this, submit each model to both the peak performance server and the robustness server.

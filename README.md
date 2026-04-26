@@ -42,3 +42,14 @@ docker save -o nncv_submission.tar nncv-submission:latest
 ```
 
 After this, submit each model to both the peak performance server and the robustness server.
+
+### Usernames
+The usernames used in both the peak performance and the robustness servers can be seen below:
+
+- Danny_baseline
+- Danny_Residual_U_Net
+- Danny_SE_U_Net_v2
+- Danny_Residual_SE_U_Net_v2
+
+The TU/e email address can be seen below:
+d.h.h.huynh@student.tue.nl
